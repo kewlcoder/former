@@ -70,14 +70,18 @@ class SelfAttentionWide(nn.Module):
         # compute scaled dot-product self-attention
 
         # - fold heads into the batch dimension
+        """
+        Since the head and batch dimension are not next to each other, we need to transpose before we reshape.
+        (This is costly, but it seems to be unavoidable.)
+        """
         keys = keys.transpose(1, 2).contiguous().view(b * h, t, e)
         queries = queries.transpose(1, 2).contiguous().view(b * h, t, e)
         values = values.transpose(1, 2).contiguous().view(b * h, t, e)
 
+        # - WHY??? Instead of dividing the dot products by sqrt(e), where e is the embedding dim, we scale the keys and values.
+        #   This should be more memory efficient
         queries = queries / (e ** (1/4))
         keys    = keys / (e ** (1/4))
-        # - Instead of dividing the dot products by sqrt(e), where e is the embedding dim, we scale the keys and values.
-        #   This should be more memory efficient
         """ @kewlcoder - we divide by sqrt(e) because in a 2D vector space if a vector has c value in each dimension, the 
         aggregate vector becomes sqrt(2) * c. Thus, for n-dim vector space it would have an impact of sqrt(n). Thus, as 
         dim(e) increases, the product would become bigger and bigger and to supress that, we divide by sqrt(e).
@@ -103,6 +107,11 @@ class SelfAttentionWide(nn.Module):
         out = torch.bmm(dot, values).view(b, h, t, e)
 
         # swap h, t back, unify heads
+        """
+        can also use - 
+        https://pytorch.org/docs/stable/generated/torch.einsum.html
+        https://github.com/pbloem/former/issues/4
+        """
         out = out.transpose(1, 2).contiguous().view(b, t, h * e)
 
         """ @kewlcoder - (b,t,h*e)(h*e, e) => (b,t,e) -> We finally get attention weighted 
