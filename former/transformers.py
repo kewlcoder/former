@@ -92,9 +92,15 @@ class CTransformer(nn.Module):
 
         x = self.tblocks(x)
 
-        x = x.max(dim=1)[0] if self.max_pool else x.mean(dim=1) # pool over the time dimension
+        # x.shape = (batch_size, max_length, emb_dim)
+        # For classification example, it is (4, 512, 128)
+        # print("before pooling x.shape = ", x.shape)
+        x = x.max(dim=1)[0] if self.max_pool else x.mean(dim=1) # pool over the time dimension(average/pooling over max_length i.e. length of sequence)
+        
+        # x.shape = (batch_size, emb_dim)
+        # output -> (4, 128)
+        # print("after pooling x.shape = ", x.shape)
 
         x = self.toprobs(x)
 
         return F.log_softmax(x, dim=1)
-

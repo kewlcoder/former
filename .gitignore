@@ -1,0 +1,5 @@
+*.txt
+*.tar.gz
+*.feat
+*.vocab
+*.pyc

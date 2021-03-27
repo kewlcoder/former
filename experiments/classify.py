@@ -8,7 +8,9 @@ from torch import nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-from torchtext import data, datasets, vocab
+from torchtext.legacy import data, datasets, vocab
+
+# from torchtext.legacy import data
 
 import numpy as np
 
